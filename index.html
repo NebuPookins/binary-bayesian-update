@@ -22,7 +22,7 @@
 	<body>
 		<div class="container">
 			<div id="svgClientWidthBug" class="alert alert-danger" role="alert">
-				<h1>There is a bug that will prevent this app from working in your browser.</h1>
+				<h1>There is a bug that will prevent the dynamic bar chart from rendering correctly in your browser.</h1>
 
 				<p>This app has been tested and confirmed to work in the following browsers:</p>
 
@@ -1070,11 +1070,6 @@
 
 				var margin = {top: 20, right: 60, bottom: 30, left: 20};
 				var $svgBarchart = document.getElementById('barchart');
-				if ($svgBarchart.clientWidth === 0) {
-					//This is a FireFox bug
-					var $svgClientWidthBug = document.getElementById('svgClientWidthBug');
-					$svgClientWidthBug.style.display = 'block';
-				}
 				var $stats = document.getElementById('stats');
 				var d3Svg = d3.select($svgBarchart);
 				
@@ -1109,6 +1104,13 @@
 					var transitionDuration = 500;
 					var barChartWidth = $svgBarchart.clientWidth - margin.left - margin.right;
 					var barChartHeight = $svgBarchart.clientHeight - margin.top - margin.bottom;
+					if ($svgBarchart.clientWidth === 0) {
+						//This is a FireFox bug
+						var $svgClientWidthBug = document.getElementById('svgClientWidthBug');
+						$svgClientWidthBug.style.display = 'block';
+						barChartWidth = $svgBarchart.parentElement.clientWidth - margin.left - margin.right;
+						barChartHeight = barChartWidth / 16 * 9 * 0.8; //total hack
+					}
 					var barWidth = Math.floor(barChartWidth / hypotheses.length) - 1;
 					var maxYValue  = Math.max.apply(null, hypotheses);
 					maxYValue = Math.max.apply(null, hypotheses);
