@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8"/>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<link rel="stylesheet" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"/>
+		<title>Bayesian Updating on a Binary Random Variable</title>
+		<style type="text/css">
+		svg#barchart {
+			width: 100%;
+			height: 80vh;
+			border: solid 1px black;
+		}
+		#svgClientWidthBug {
+			display: none;
+		}
+		</style>
+		<script src="http://fred-wang.github.io/mathjax.js/mpadded-min.js"></script>
+		<script src="http://d3js.org/d3.v3.min.js"></script>
+	</head>
+	<body>
+		<div class="container">
+			<div id="svgClientWidthBug" class="alert alert-danger" role="alert">
+				<h1>There is a bug that will prevent this app from working in your browser.</h1>
+
+				<p>This app has been tested and confirmed to work in the following browsers:</p>
+
+				<ul>
+				<li>Chrome 37.0.2062.124 m</li>
+				<li>Internet Explorer 11.0.9600.17278</li>
+				</ul>
+
+				<p>The following browsers have known issues using this web app:</p>
+
+				<ul>
+				<li>If you are using Firefox, please see <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=874811">https://bugzilla.mozilla.org/show_bug.cgi?id=874811</a></li>
+				</ul>
+			</div>
+			<svg id="barchart">
+			</svg>
+			<button type="button" id="btnFailure" class="btn btn-danger btn-lg">Witnessed Failure</button>
+			<button type="button" id="btnSuccess" class="btn btn-success btn-lg">Witnessed Success</button>
+			<button type="button" id="btnReset" class="btn btn-default btn-lg">Reset Experiment</button>
+			<span id="stats"></span>
+			<h1>What is this?</h1>
+			<p>This is a web app that helps you visualize <em>Bayesian updating</em> on a <em>set of hypotheses</em> for <em>a
+			binary random variable</em>.</p>
+			<p>Some people like to hear an explanation of the general, abstract concept first. Other people prefer to start
+			with a concrete example. Read the following two columns in whatever order you prefer.</p>
+			<div class="row">
+				<div class="col-md-6">
+					<h2>Abstract Explanation</h2>
+					<blockquote>
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")"><mrow>
+								<msub><mi>H</mi><mi>i</mi></msub>
+								<mo>|</mo>
+								<mi>E</mi>
+							</mrow></mfenced>
+							<mo>=</mo>
+							<mfrac>
+								<mrow>
+									<mi>P</mi>
+									<mo>&ApplyFunction;</mo>
+									<mfenced open="(" close=")">
+										<mrow>
+											<mi>E</mi>
+											<mo>|</mo>
+											<msub><mi>H</mi><mi>i</mi></msub>
+										</mrow>
+									</mfenced>
+									<mo>&InvisibleTimes;</mo>
+									<mi>P</mi>
+									<mo>&ApplyFunction;</mo>
+									<mfenced open="(" close=")">
+										<msub><mi>H</mi><mi>i</mi></msub>
+									</mfenced>
+								</mrow>
+								<mrow><mi>P</mi><mo>&ApplyFunction;</mo><mfenced open="(" close=")"><mi>E</mi></mfenced></mrow>
+							</mfrac>
+						</math>
+						<footer>Bayes Theorem</footer>
+					</blockquote>
+					<p>
+						Given a (possibly infinite) set of mutually exclusive hypotheses
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<msub><mi>H</mi><mi>0</mi></msub>
+							<mo>,</mo>
+							<msub><mi>H</mi><mi>1</mi></msub>
+							<mo>,</mo>
+							<msub><mi>H</mi><mi>2</mi></msub>
+							<mo>,</mo>
+							<mtext>&hellip;</mtext>
+						</math>,
+						for each hypothesis
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<msub><mi>H</mi><mi>i</mi></msub>
+						</math>,
+						we wish to calculate the probability
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")"><mrow>
+								<msub><mi>H</mi><mi>i</mi></msub>
+								<mo>|</mo>
+								<mi>E</mi>
+							</mrow></mfenced>
+						</math>
+						that the hypothesis is true, given that we witnessed some evidence
+						<math xmlns='http://www.w3.org/1998/Math/MathML'><mi>E</mi></math>.
+						In other words, we wish to update our beliefs about the plausibility
+						of the various hypotheses we have under consideration in response to
+						witnessing some evidence (either for or against) those hypotheses.
+						We start off by having some prior beliefs about the probability of
+						the hypotheses
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")">
+								<msub><mi>H</mi><mi>i</mi></msub>
+							</mfenced>
+						</math> such that
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<munderover>
+								<mo>&Sum;</mo>
+								<mrow>
+									<mo>&forall;</mo>
+									<mi>i</mi>
+								</mrow>
+								<mtext></mtext>
+							</munderover>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")">
+								<msub><mi>H</mi><mi>i</mi></msub>
+							</mfenced>
+							<mo>=</mo>
+							<mn>1</mn>
+						</math>
+						(i.e. we consider all possible hypotheses). Typically, if we have don't know which hypotheses to favor, we
+						simply assign a uniform distribution over the hypotheses (there are some theoretical justifications for
+						doing this, e.g.
+						<a href="http://lesswrong.com/lw/dhg/an_intuitive_explanation_of_solomonoff_induction/#the_problem_of_priors">Solomonoff induction</a>,
+						which is beyond the scope of this article.)
+					</p>
+					<p>
+						Each of these hypotheses gives a probability distribution for various events. In our case, we are only
+						interested in binary random variables, and so there are only two events of interests. Call one of these
+						events the "success" event, denoted by <math xmlns='http://www.w3.org/1998/Math/MathML'><mi>E</mi></math>,
+						and call the other event the "failure" event, denoted by
+						<math xmlns='http://www.w3.org/1998/Math/MathML'><mo>&not;</mo><mi>E</mi></math>. Since these are the only
+						two possible events, we have
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<mrow><mo>&forall;</mo><mi>i</mi></mrow>
+							<mo>,</mo>
+							<mrow>
+								<mi>P</mi>
+								<mo>&ApplyFunction;</mo>
+								<mfenced open="(" close=")">
+									<mrow>
+										<mi>E</mi>
+										<mo>|</mo>
+										<msub><mi>H</mi><mi>i</mi></msub>
+									</mrow>
+								</mfenced>
+								<mo>+</mo>
+								<mi>P</mi>
+								<mo>&ApplyFunction;</mo>
+								<mfenced open="(" close=")">
+									<mrow>
+										<mo>&not;</mo>
+										<mi>E</mi>
+										<mo>|</mo>
+										<msub><mi>H</mi><mi>i</mi></msub>
+									</mrow>
+								</mfenced>
+								<mo>=</mo>
+								<mn>1</mn>
+							</mrow>
+						</math>.
+					</p>
+					<p>
+						We now have a bunch of hypotheses, each one giving different predictions about the likelihood of witnessing
+						or not witnessing an event <math xmlns='http://www.w3.org/1998/Math/MathML'><mi>E</mi></math>. We also have
+						a confidence levels for each of these hypotheses. We can combine these two pieces of information together to
+						compute an overall probability of witnessing an event E:
+					</p>
+					<math xmlns='http://www.w3.org/1998/Math/MathML'>
+						<mrow>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")">
+								<mi>E</mi>
+							</mfenced>
+						</mrow>
+						<mo>=</mo>
+						<mrow>
+							<munderover>
+								<mo>&Sum;</mo>
+								<mrow>
+									<mo>&forall;</mo>
+									<mi>i</mi>
+								</mrow>
+								<mtext></mtext>
+							</munderover>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")">
+								<mrow>
+									<mi>E</mi>
+									<mo>|</mo>
+									<msub><mi>H</mi><mi>i</mi></msub>
+								</mrow>
+							</mfenced>
+							<mo>&InvisibleTimes;</mo>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")">
+								<msub><mi>H</mi><mi>i</mi></msub>
+							</mfenced>
+						</mrow>
+					</math>
+					and
+					<math xmlns='http://www.w3.org/1998/Math/MathML'>
+						<mrow>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")">
+								<mrow>
+									<mo>&not;</mo>
+									<mi>E</mi>
+								</mrow>
+							</mfenced>
+						</mrow>
+						<mo>=</mo>
+						<mrow>
+							<munderover>
+								<mo>&Sum;</mo>
+								<mrow>
+									<mo>&forall;</mo>
+									<mi>i</mi>
+								</mrow>
+								<mtext></mtext>
+							</munderover>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")">
+								<mrow>
+									<mo>&not;</mo>
+									<mi>E</mi>
+									<mo>|</mo>
+									<msub><mi>H</mi><mi>i</mi></msub>
+								</mrow>
+							</mfenced>
+							<mo>&InvisibleTimes;</mo>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")">
+								<msub><mi>H</mi><mi>i</mi></msub>
+							</mfenced>
+						</mrow>
+					</math>.
+					<p>
+						However, rather than performing the summation, let us instead represent this equation as a
+						<a href="https://en.wikipedia.org/wiki/Tree_diagram_(probability_theory)">probability tree</a>:
+					</p>
+					<svg width="100%" height="200px" viewBox="0 0 1300 800" id="decisionTree">
+					</svg>
+					<script type="text/javascript">
+						(function() {
+							var $svg = document.getElementById('decisionTree');
+							var height = 800;
+							var data = {
+								x0: height / 2,
+								y0: 0,
+								name: "U",
+								children: [
+									{
+										name: "P(H0)",
+										children: [
+											{ name: "P(H0∩E)≡P(H0)P(E|H0)" },
+											{ name: "P(H0∩¬E)≡P(H0)P(¬E|H0)" }
+										]
+									}, {
+										name: "P(H1)",
+										children: [
+											{ name: "P(H1∩E)≡P(H1)P(E|H1)" },
+											{ name: "P(H1∩¬E)≡P(H1)P(¬E|H1)" }
+										]
+									}, {
+										name: "P(H2)",
+										children: [
+											{ name: "P(H2∩E)≡P(H2)P(E|H2)" },
+											{ name: "P(H2∩¬E)≡P(H2)P(¬E|H2)" }
+										]
+									}
+								]
+							};
+							var i = 0;
+							var tree = d3.layout.tree()
+								.size([height, $svg.clientWidth]);
+							var diagonal = d3.svg.diagonal()
+								.projection(function(d) { return [d.y, d.x]; });
+							var vis = d3.select($svg)
+								.append("svg:g")
+								.attr("transform", "translate(30,0)");
+
+							update(data);
+
+							function update(source) {
+
+								// Compute the new tree layout.
+								var nodes = tree.nodes(data);
+
+								// Normalize for fixed-depth.
+								nodes.forEach(function(d) { d.y = d.depth * 400; });
+
+								// Update the nodes…
+								var node = vis.selectAll("g.node")
+									.data(nodes, function(d) { return d.id || (d.id = ++i); });
+
+								// Enter any new nodes at the parent's previous position.
+								var nodeEnter = node.enter().append("g")
+									.attr("class", "node")
+									.attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
+									;
+
+								nodeEnter.append("circle")
+									.attr("r", 15)
+									.style("fill", function(d) { return d._children ? "#f00" : "#000"; })
+
+								nodeEnter.append("text")
+									.attr("x", function(d) { return d.children || d._children ? -30 : 30; })
+									.attr("dy", ".35em")
+									.attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+									.text(function(d) { return d.name; })
+									.style("fill-opacity", 1);
+
+								var link = vis.selectAll("path")
+									.data(tree.links(nodes), function(d) { return d.target.id; });
+
+								link.enter().insert("path", "g")
+									.attr('fill', 'none')
+									.attr('stroke', '#11F')
+									.attr('stroke-width', '3px')
+									.attr("d", diagonal);
+							}
+						})();
+					</script>
+					<p>
+						As always with probability trees, the probability for the nodes in each vertical slice sums up to 1. The
+						left-most slice consists of just the single node U which represents the universe of all possibilities. By
+						definition, this has probability 1. The middle slice summing up to 1 is consistent with our earlier
+						assertions that
+						<math xmlns="http://www.w3.org/1998/Math/MathML">
+							<munderover>
+								<mo>&Sum;</mo>
+								<mrow>
+									<mo>&forall;</mo>
+									<mi>i</mi>
+								</mrow>
+								<mtext></mtext>
+							</munderover>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")">
+								<msub>
+									<mi>H</mi>
+									<mi>i</mi>
+								</msub>
+							</mfenced>
+							<mo>=</mo>
+							<mn>1</mn>
+						</math>.
+						The right-most slice simply splits each hypothesis into two further possibilities, one where
+						<math xmlns='http://www.w3.org/1998/Math/MathML'><mi>E</mi></math> is observed and one where
+						<math xmlns='http://www.w3.org/1998/Math/MathML'><mo>&not;</mo><mi>E</mi></math> is observed. As asserted
+						earlier,
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+						<mrow>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")">
+								<mi>E</mi>
+							</mfenced>
+						</mrow>
+						<mo>=</mo>
+						<mrow>
+							<munderover>
+								<mo>&Sum;</mo>
+								<mrow>
+									<mo>&forall;</mo>
+									<mi>i</mi>
+								</mrow>
+								<mtext></mtext>
+							</munderover>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")">
+								<mrow>
+									<mi>E</mi>
+									<mo>|</mo>
+									<msub><mi>H</mi><mi>i</mi></msub>
+								</mrow>
+							</mfenced>
+							<mo>&InvisibleTimes;</mo>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")">
+								<msub><mi>H</mi><mi>i</mi></msub>
+							</mfenced>
+						</mrow>
+					</math>
+					and
+					<math xmlns='http://www.w3.org/1998/Math/MathML'>
+						<mrow>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")">
+								<mrow>
+									<mo>&not;</mo>
+									<mi>E</mi>
+								</mrow>
+							</mfenced>
+						</mrow>
+						<mo>=</mo>
+						<mrow>
+							<munderover>
+								<mo>&Sum;</mo>
+								<mrow>
+									<mo>&forall;</mo>
+									<mi>i</mi>
+								</mrow>
+								<mtext></mtext>
+							</munderover>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")">
+								<mrow>
+									<mo>&not;</mo>
+									<mi>E</mi>
+									<mo>|</mo>
+									<msub><mi>H</mi><mi>i</mi></msub>
+								</mrow>
+							</mfenced>
+							<mo>&InvisibleTimes;</mo>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")">
+								<msub><mi>H</mi><mi>i</mi></msub>
+							</mfenced>
+						</mrow>
+					</math>,
+					and given that
+					<math xmlns='http://www.w3.org/1998/Math/MathML'>
+						<mrow>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")">
+								<mi>E</mi>
+							</mfenced>
+						</mrow>
+						<mo>+</mo>
+						<mrow>
+							<mi>P</mi>
+							<mo>&ApplyFunction;</mo>
+							<mfenced open="(" close=")">
+								<mrow>
+									<mo>&not;</mo>
+									<mi>E</mi>
+								</mrow>
+							</mfenced>
+						</mrow>
+						<mo>=</mo>
+						<mn>1</mn>
+					</math>,
+					we can thus confirm that the right-most slice also sums up to 1.
+					</p>
+					<p>Without loss of generality, let's say we observe event <math xmlns='http://www.w3.org/1998/Math/MathML'><mi>E</mi></math>
+					(just swap the labels for <math xmlns='http://www.w3.org/1998/Math/MathML'><mi>E</mi></math> and
+					<math xmlns='http://www.w3.org/1998/Math/MathML'><mo>&not;</mo><mi>E</mi></math> if you want to see the
+					converse case). What happens to our probability tree?</p>
+					<svg width="100%" height="200px" viewBox="0 0 1300 800" id="decisionTree2">
+					</svg>
+					<script type="text/javascript">
+						(function() {
+							var $svg = document.getElementById('decisionTree2');
+							var height = 800;
+							var data = {
+								x0: height / 2,
+								y0: 0,
+								name: "U|E",
+								children: [
+									{
+										name: "P(H0|E)",
+										children: [
+											{ name: "P(H0∩E|E)≡P(H0|E)", deleted: false },
+											{ name: "P(H0∩¬E|E)≡0", deleted: true }
+										]
+									}, {
+										name: "P(H1|E)",
+										children: [
+											{ name: "P(H1∩E|E)≡P(H1|E)", deleted: false },
+											{ name: "P(H1∩¬E|E)≡0", deleted: true }
+										]
+									}, {
+										name: "P(H2|E)",
+										children: [
+											{ name: "P(H2∩E|E)≡P(H2|E)", deleted: false },
+											{ name: "P(H2∩¬E|E)≡0", deleted: true }
+										]
+									}
+								]
+							};
+							var i = 0;
+							var tree = d3.layout.tree()
+								.size([height, $svg.clientWidth]);
+							var diagonal = d3.svg.diagonal()
+								.projection(function(d) { return [d.y, d.x]; });
+							var vis = d3.select($svg)
+								.append("svg:g")
+								.attr("transform", "translate(30,0)");
+
+							update(data);
+
+							function update(source) {
+
+								// Compute the new tree layout.
+								var nodes = tree.nodes(data);
+
+								// Normalize for fixed-depth.
+								nodes.forEach(function(d) { d.y = d.depth * 400; });
+
+								// Update the nodes…
+								var node = vis.selectAll("g.node")
+									.data(nodes, function(d) { return d.id || (d.id = ++i); });
+
+								// Enter any new nodes at the parent's previous position.
+								var nodeEnter = node.enter().append("g")
+									.attr("class", "node")
+									.attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
+									;
+
+								nodeEnter.append("circle")
+									.attr("r", 15)
+									.style("fill", function(d) { return d._children ? "#f00" : "#000"; })
+
+								nodeEnter.append("text")
+									.attr("x", function(d) { return d.children || d._children ? -30 : 30; })
+									.attr("dy", ".35em")
+									.attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+									.text(function(d) { return d.name; })
+									.style("fill-opacity", function(d) { return d.deleted ? 0.4 : 1});
+
+								var link = vis.selectAll("path")
+									.data(tree.links(nodes), function(d) { return d.target.id; });
+
+								link.enter().insert("path", "g")
+									.attr('fill', 'none')
+									.attr('stroke', function(d) { return d.target.deleted ? '#F11' : '#11F';})
+									.attr('stroke-width', '3px')
+									.attr("d", diagonal);
+							}
+						})();
+					</script>
+					<p>
+						Intuitively, we are deleting the nodes which consist entirely of states where <math xmlns='http://www.w3.org/1998/Math/MathML'><mi>E</mi></math>
+						is false (or equivalently, where <math xmlns='http://www.w3.org/1998/Math/MathML'><mo>&not;</mo><mi>E</mi></math> is true),
+						and then renormalizing the remaining nodes so that each vertical slice once again sums up to 1.
+					</p>
+					<p>
+						The probability
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<mrow>
+								<mi>P</mi>
+								<mo>&ApplyFunction;</mo>
+								<mfenced open="(" close=")">
+									<mrow>
+										<mo>&not;</mo>
+										<mi>E</mi>
+										<mo>|</mo>
+										<mi>E</mi>
+									</mrow>
+								</mfenced>
+							</mrow>
+							<mo>=</mo>
+							<mn>0</mn>
+						</math>,
+						and the probability
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<mrow>
+								<mi>P</mi>
+								<mo>&ApplyFunction;</mo>
+								<mfenced open="(" close=")">
+									<mrow>
+										<mi>Q</mi>
+										<mo>&cap;</mo>
+										<mo>&not;</mo>
+										<mi>E</mi>
+										<mo>|</mo>
+										<mi>E</mi>
+									</mrow>
+								</mfenced>
+							</mrow>
+							<mo>=</mo>
+							<mn>0</mn>
+						</math>
+						for any and all propositions <math xmlns='http://www.w3.org/1998/Math/MathML'><mi>Q</mi></math>, so this is
+						how the deletion "formally" happens. The deleted probability mass is exactly
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<mrow>
+								<mi>P</mi>
+								<mo>&ApplyFunction;</mo>
+								<mfenced open="(" close=")">
+									<mrow>
+										<mo>&not;</mo>
+										<mi>E</mi>
+									</mrow>
+								</mfenced>
+							</mrow>
+						</math>,
+						and the remaining mass is
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<mrow>
+								<mi>P</mi>
+								<mo>&ApplyFunction;</mo>
+								<mfenced open="(" close=")">
+									<mrow>
+										<mi>E</mi>
+									</mrow>
+								</mfenced>
+							</mrow>
+						</math>,
+						so we can renormalize the existing nodes by dividing the old values
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<mrow>
+								<mi>P</mi>
+								<mo>&ApplyFunction;</mo>
+								<mfenced open="(" close=")">
+									<mrow>
+										<msub><mi>H</mi><mi>i</mi></msub>
+										<mo>&cap;</mo>
+										<mi>E</mi>
+									</mrow>
+								</mfenced>
+							</mrow>
+						</math>
+						by
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<mrow>
+								<mi>P</mi>
+								<mo>&ApplyFunction;</mo>
+								<mfenced open="(" close=")">
+									<mrow>
+										<mi>E</mi>
+									</mrow>
+								</mfenced>
+							</mrow>
+						</math>.
+						That is to say,
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<mo>&forall;</mo>
+							<mi>i</mi>
+							<mo>,</mo>
+							<mrow>
+								<mi>P</mi>
+								<mo>&ApplyFunction;</mo>
+								<mfenced open="(" close=")">
+									<mrow>
+										<msub><mi>H</mi><mi>i</mi></msub>
+										<mo>&cap;</mo>
+										<mi>E</mi>
+										<mo>|</mo>
+										<mi>E</mi>
+									</mrow>
+								</mfenced>
+							</mrow>
+							<mo>&equiv;</mo>
+							<mfrac>
+								<mrow>
+									<mi>P</mi>
+									<mo>&ApplyFunction;</mo>
+									<mfenced open="(" close=")">
+										<mrow>
+											<msub><mi>H</mi><mi>i</mi></msub>
+											<mo>&cap;</mo>
+											<mi>E</mi>
+										</mrow>
+									</mfenced>
+								</mrow>
+								<mrow>
+									<mi>P</mi>
+									<mo>&ApplyFunction;</mo>
+									<mfenced open="(" close=")">
+										<mi>E</mi>
+									</mfenced>
+								</mrow>
+							</mfrac>
+						</math>.
+					</p>
+					<p>
+						Note that we also have
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<mo>&forall;</mo>
+							<mi>i</mi>
+							<mo>,</mo>
+							<mrow>
+								<mi>P</mi>
+								<mo>&ApplyFunction;</mo>
+								<mfenced open="(" close=")">
+									<mrow>
+										<msub><mi>H</mi><mi>i</mi></msub>
+										<mo>&cap;</mo>
+										<mi>E</mi>
+										<mo>|</mo>
+										<mi>E</mi>
+									</mrow>
+								</mfenced>
+							</mrow>
+							<mo>&equiv;</mo>
+							<mrow>
+								<mi>P</mi>
+								<mo>&ApplyFunction;</mo>
+								<mfenced open="(" close=")">
+									<mrow>
+										<msub><mi>H</mi><mi>i</mi></msub>
+										<mo>|</mo>
+										<mi>E</mi>
+									</mrow>
+								</mfenced>
+							</mrow>
+						</math>,
+						as can be seen from the probability-tree: The nodes in the middle slice representing
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<mrow>
+								<mi>P</mi>
+								<mo>&ApplyFunction;</mo>
+								<mfenced open="(" close=")">
+									<mrow>
+										<msub><mi>H</mi><mi>i</mi></msub>
+										<mo>|</mo>
+										<mi>E</mi>
+									</mrow>
+								</mfenced>
+							</mrow>
+						</math>
+						only have one non-zero-weight edge coming out of them, and so their probability must be equal to the sole
+						non-zero child.
+					</p>
+					<p>
+						Substituting in the two equations together, we have
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<mo>&forall;</mo>
+							<mi>i</mi>
+							<mo>,</mo>
+							<mrow>
+								<mi>P</mi>
+								<mo>&ApplyFunction;</mo>
+								<mfenced open="(" close=")">
+									<mrow>
+										<msub><mi>H</mi><mi>i</mi></msub>
+										<mo>|</mo>
+										<mi>E</mi>
+									</mrow>
+								</mfenced>
+							</mrow>
+							<mo>&equiv;</mo>
+							<mfrac>
+								<mrow>
+									<mi>P</mi>
+									<mo>&ApplyFunction;</mo>
+									<mfenced open="(" close=")">
+										<mrow>
+											<msub><mi>H</mi><mi>i</mi></msub>
+											<mo>&cap;</mo>
+											<mi>E</mi>
+										</mrow>
+									</mfenced>
+								</mrow>
+								<mrow>
+									<mi>P</mi>
+									<mo>&ApplyFunction;</mo>
+									<mfenced open="(" close=")">
+										<mi>E</mi>
+									</mfenced>
+								</mrow>
+							</mfrac>
+						</math>
+						and finally
+						<math xmlns='http://www.w3.org/1998/Math/MathML'>
+							<mo>&forall;</mo>
+							<mi>i</mi>
+							<mo>,</mo>
+							<mrow>
+								<mi>P</mi>
+								<mo>&ApplyFunction;</mo>
+								<mfenced open="(" close=")">
+									<mrow>
+										<msub><mi>H</mi><mi>i</mi></msub>
+										<mo>|</mo>
+										<mi>E</mi>
+									</mrow>
+								</mfenced>
+							</mrow>
+							<mo>&equiv;</mo>
+							<mfrac>
+								<mrow>
+									<mrow>
+										<mi>P</mi>
+										<mo>&ApplyFunction;</mo>
+										<mfenced open="(" close=")">
+											<mrow>
+												<mi>E</mi>
+												<mo>|</mo>
+												<msub><mi>H</mi><mi>i</mi></msub>
+											</mrow>
+										</mfenced>
+									</mrow>
+									<mo>&InvisibleTimes;</mo>
+									<mrow>
+										<mi>P</mi>
+										<mo>&ApplyFunction;</mo>
+										<mfenced open="(" close=")">
+											<msub><mi>H</mi><mi>i</mi></msub>
+										</mfenced>
+									</mrow>
+								</mrow>
+								<mrow>
+									<mi>P</mi>
+									<mo>&ApplyFunction;</mo>
+									<mfenced open="(" close=")">
+										<mi>E</mi>
+									</mfenced>
+								</mrow>
+							</mfrac>
+						</math>, thus independently rederiving Baye's Theorem.&nbsp;&#8718;
+					</p>
+				</div>
+				<div class="col-md-6">
+					<h2>Concrete Example</h2>
+					<p>A binary random variable is a random variable that can only take on exactly two possible values. The classic
+					example of a binary random variable is a coin flip, which can end up as either <em>heads</em> or
+					<em>tails</em>.</p>
+					<p>When dealing with coin flips, we often assume (or "hypothesize") that the coin is <em>fair</em> (i.e. that
+					for every flip of the coin, it is equally likely to land on heads as it is to land on tails). However, that
+					need not be the case. The hypothesis "This coin is 50% likely to land on heads" is just one of many
+					hypotheses; other possibilities include "This coin is 51% likely to land on heads", "This coin is 66% likely
+					to land on heads", "This coin is 0% likely to land on heads", and so on.</p>
+					<p>When you first receive a new coin, you don't know whether it's fair or not. If you want to find out whether
+					or not it's fair, an easy test to do is to flip it a few times, and observe what sort of results you get.</p>
+					<p>If you flip the coin 10 times, and all 10 times, the coin lands tails, then <em>maybe</em> it's a fair coin
+					and you just happened to get really (un)lucky, but it seems much more probable that this is a coin that's
+					biased towards landing on heads. At any rate, you can completely rule out the hypothesis "This coin is 0%
+					likely to land on heads". And you can almost, but not quite rule out "This coin is 1% likely to land on
+					heads": It's extremely unlikely that you'd get 10 heads in a row on a coin that's heavily biased towards
+					tails, but not outright impossible.</p>
+					<p>This app helps you keep track of the probabilities of the various hypotheses. To be sure, this is a bit
+					meta: The hypotheses themselves are assigning probabilities to a binary random variable, and then you are
+					assigning probabilities to the hypotheses. For example, you might calculate that the probability that the
+					hypothesis "the probability that this coin will land heads is 73%" is true is 26%.</p>
+					<p>Start by clicking the "Reset Experiment" button. You'll see a big blue rectangle,
+					indicating that all hypotheses are of equal probability. Then, you'll have to define your random variable.
+					Let's stick with coin flips for now, and define "heads" to be a "success" and "tails" to be a "failure".</p>
+					<p>Now let's flip our imaginary coin, and let's say the coin comes up tails. That means we've witnessed a
+					"failure", so click the "Witnessed Failure" button. You should immediately see the
+					bar graph update itself. Each column represents a hypothesis, with the column all the way on the left
+					representing the hypothesis "You are 0% likely to see a success" (which in our example scenario translates to
+					"You are 0% likely to get a head when you flip the coin"); the column all the way to the right represents the
+					hypothesis "You are 100% likely to see a success", and all the columns in between represent each intermediate
+					hypothesis in increments of 1%. The height of the column represents how likely it is that that particular
+					hypothesis is true.</p>
+					<p>After having witnessed a failure, we can rule out the hypothesis "You are 100% likely to see a success"
+					(because if that hypothesis were true, it would have been impossible to witness a failure), and as expected,
+					the column all the way on the right has shrunk down to a height of 0.</p>
+					<p>Let's say we flip the coin again, and this time we witness a success (that is, we see the coin land on
+					heads). We would then click on the "Witnessed Success" button, and see the bar chart update appropriately.
+					With exactly one success and one failure, the most probable hypothesis is that there's a 50% chance of
+					seeing a success, but notice that the curve that the curve of the bar chart is quite wide, indicating that
+					we don't have enough evidence to be highly confident that we're dealing with a fair coin (we only have a
+					sample size of 2, after all...)</p>
+					<p>As you add more data (e.g. try randomly clicking on "Witness Failure" and "Witness Success" a dozen times),
+					you should see the curve get narrower and narrower, indicating growing confidence of the hypotheses that have
+					not been eliminated.</p>
+				</div>
+			</div>
+			<h1>Ideas to play around with</h1>
+			<ul>
+			<li>My program successfully processed 10 files without showing any signs of bugs. What's the probability that my
+			program is bug free? (But see also <a href="http://nebupookins.github.io/fisher-bug/">http://nebupookins.github.io/fisher-bug/</a>)</li>
+			<li>The sun has risen every day for 1658200000000 days in a row. What are the odds that it'll rise tomorrow?</li>
+			<li>I've bought 800 lottery tickets and haven't won yet. What are the odds that I'll win the next one?</li>
+			</ul>
+			<h1>Thanks and Further Reading</h1>
+			<p>I put this page together with the help of the following free online resources (in alphabetical order):</p>
+			<ul>
+			<li>Authoring MathML - <a href="https://developer.mozilla.org/en-US/docs/Web/MathML/Authoring">https://developer.mozilla.org/en-US/docs/Web/MathML/Authoring</a></li>
+			<li>Bayesian updating of probability distributions - <a href="http://www.databozo.com/2013/09/15/Bayesian_updating_of_probability_distributions.html">http://www.databozo.com/2013/09/15/Bayesian_updating_of_probability_distributions.html</a></li>
+			<li>Bayes' Theorem Illustrated (My Way) - <a href="http://lesswrong.com/lw/2b0/bayes_theorem_illustrated_my_way/">http://lesswrong.com/lw/2b0/bayes_theorem_illustrated_my_way/</a></li>
+			<li>Bootstrap - <a href="http://getbootstrap.com/">http://getbootstrap.com/</a></li>
+			<li>d3 API reference - <a href="https://github.com/mbostock/d3/wiki/API-Reference">https://github.com/mbostock/d3/wiki/API-Reference</a></li>
+			<li>D3 Tutorials - <a href="http://alignedleft.com/tutorials/d3">http://alignedleft.com/tutorials/d3</a></li>
+			<li>d3js - <a href="http://d3js.org/">http://d3js.org/</a></li>
+			<li>General Pattern Update - <a href="http://bl.ocks.org/mbostock/3808218">http://bl.ocks.org/mbostock/3808218</a></li>
+			<li>Manipulating the browser history - <a href="https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Manipulating_the_browser_history">https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Manipulating_the_browser_history</a></li>
+			<li>Mathematical Markup Language (MathML) - <a href="http://www.mathml.su/english/">http://www.mathml.su/english/</a></li>
+			<li>MathML with examples - <a href="http://gorupec.awardspace.com/mathml.xhtml">http://gorupec.awardspace.com/mathml.xhtml</a></li>
+			<li>Path Transitions - <a href="http://bost.ocks.org/mike/path/">http://bost.ocks.org/mike/path/</a></li>
+			<li>Ry’s MathML Tutorial - <a href="http://rypress.com/tutorials/mathml/index.html">http://rypress.com/tutorials/mathml/index.html</a></li>
+			<li>SVG element reference - <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element">https://developer.mozilla.org/en-US/docs/Web/SVG/Element</a></li>
+			<li>Thinking with Joins - <a href="http://bost.ocks.org/mike/join/">http://bost.ocks.org/mike/join/</a></li>
+			</ul>
+			<footer>
+				Copyright &copy; 2014 Nebu Pookins. All rights reserved.
+			</footer>
+		</div>
+		<script type="text/javascript">
+			(function() {
+				'use strict';
+
+				/**
+				 * Given an array of weights, returns an array of probabilities, by
+				 * scaling the weights such that they sum up to 1.
+				 */
+				function normalize(probabilities) {
+					var sum = probabilities.reduce(function(acc, element) {
+						return acc + element;
+					}, 0);
+					var scale = 1 / sum;
+					return probabilities.map(function (element) {
+						return element * scale;
+					});
+				}
+
+				/**
+				 * Returns a uniform discrete distribution.
+				 */
+				function uniform(count) {
+					var retVal = [];
+					for (var i = 0; i < count; i++) {
+						retVal[i] = 1/count;
+					}
+					return retVal;
+				}
+
+				/**
+				 * Hypotheses is an array of length 101, with indices going from 0 to
+				 * 100 inclusive. Hypothesis 0 represents "the probability of a success
+				 * is 0%". Hypothesis 1 represents "the probability of success is 1%",
+				 * etc.
+				 *
+				 * The value in the array represents the probability that the
+				 * corresponding hypothesis is true. This is the P(H) part of Baye's
+				 * rule. We initialize with a uniform
+				 * distribution, where all hypotheses are equally likely.
+				 */
+				var hypotheses = uniform(101); 
+
+				/**
+				 * Performs a Bayesian updates on a set of hypotheses assuming we saw
+				 * a success event.
+				 */
+				function update_success(hypotheses) {
+					/*
+					 * Baye's rule: P(H|E) = P(H)*P(E|H)/P(E)
+					 *
+					 * We're going to run the update 101 times (once for each hypothesis).
+					 *
+					 * For each array entry, the value is P(H), the probability that the
+					 * hypothesis is true before we saw any evidence.
+					 *
+					 * The index of the entry is P(E|H), the probability that we'd witness
+					 * a success event given that the hypothesis is true. So for example,
+					 * index 0 holds Hypothesis 0, which states that there is 0% chance of
+					 * witnessing a success. Index 1 holds Hypothesis 1, which states that
+					 * there is 1% chance of witnessing a success, etc.
+					 *
+					 * Dividing by P(E) is necessary to normalize the product of
+					 * P(H)*P(E|H) so that the sum of P(Hi|E) over all indices i (and for
+					 * a fixed piece of evidence E) sums up to 1. We can directly use the
+					 * normalize() function for this.
+					 */
+					return normalize(hypotheses.map(function(ph, index) {
+						var peh = index / 100; //An index of 7 means a 7% chance of success
+						return ph*peh;
+					}));
+				}
+
+				/**
+				 * Performs a Bayesian updates on a set of hypotheses assuming we saw
+				 * a failure event.
+				 */
+				function update_failure(hypotheses) {
+					/*
+					 * This is just like update_success, except the P(E|H) for failure
+					 * is 1 - P(E|H) of success.
+					 */
+					return normalize(hypotheses.map(function(ph, index) {
+						var peh = 1 - (index / 100); //An index of 7 means a 93% chance of failure
+						return ph*peh;
+					}));
+				}
+
+				/**
+				 * Returns the mean probability as a percentage. E.g. returns the value
+				 * 50 to mean 50%
+				 */
+				function mean(probabilities) {
+					/*
+					 * The keys are the probability predicted by the hypothesis that we
+					 * are averaging over, and the value is the weight to assign to that
+					 * probability.
+					 */
+					var retVal = 0;
+					for (var i = 0; i < probabilities.length; i++) {
+						retVal += i * probabilities[i];
+					}
+					return retVal;
+				}
+
+				function standardDeviation(probabilities) {
+					var meanVal = mean(probabilities);
+					var weightedSumOfSquares = probabilities.reduce(function(acc, weight, probabilityPredictedByHypothesis) {
+						return acc + Math.pow(meanVal - probabilityPredictedByHypothesis, 2) * weight;
+					}, 0);
+					return Math.pow(weightedSumOfSquares, 0.5);
+				}
+
+				/**
+				 * Returns the index with the highest value.
+				 */
+				function mode(probabilities) {
+					var modeIndex = 0
+					var modeValue = probabilities[modeIndex];
+					for (var i = 0; i < probabilities.length; i++) {
+						if (probabilities[i] > modeValue) {
+							modeIndex = i;
+							modeValue = probabilities[modeIndex]
+						}
+					}
+					return modeIndex;
+				}
+
+				/*
+				 * We encode a sequence of successes and failures in the hash, e.g.
+				 * "#FFSFSSSF".  When page loads, check if there's a hash; if so,
+				 * parse it and restore the saved state.
+				 */
+				(function() {
+					var hash = window.location.hash;
+					var hashLength = hash.length;
+					//skip the first char; it is always '#''
+					for (var i = 1; i < hashLength; i++) {
+						if (hash[i] == 'F') {
+							hypotheses = update_failure(hypotheses);
+						} else if (hash[i] == 'S') {
+							hypotheses = update_success(hypotheses);
+						} else {
+							if (console.warn) {
+								console.warn("Don't know how to parse hash: " + hash);
+							}
+						}
+					}
+				})();
+				
+
+				var margin = {top: 20, right: 60, bottom: 30, left: 20};
+				var $svgBarchart = document.getElementById('barchart');
+				if ($svgBarchart.clientWidth === 0) {
+					//This is a FireFox bug
+					var $svgClientWidthBug = document.getElementById('svgClientWidthBug');
+					$svgClientWidthBug.style.display = 'block';
+				}
+				var $stats = document.getElementById('stats');
+				var d3Svg = d3.select($svgBarchart);
+				
+				var xScale = d3.scale.linear()
+					.domain([0, 101]);
+				var yScale = d3.scale.linear();
+				
+				var yAxis = d3.svg.axis()
+					.scale(yScale)
+					.orient('right')
+					.tickFormat(function (d) { return (d * 100).toFixed(2)+ "%";});
+
+				var xAxis = d3.svg.axis()
+					.scale(xScale)
+					.orient('bottom');
+
+				var gBar = d3Svg
+					.append('g')
+					.attr('transform', 'translate(' + margin.left + ', ' + margin.top +')');
+
+				var bars = gBar
+					.selectAll('rect')
+					.data(hypotheses)
+					.enter()
+					.append('rect')
+					.attr('fill', 'blue');
+
+				var svgYAxis = d3Svg.append('g');
+				var svgXAxis = d3Svg.append('g');
+
+				function updateUi() {
+					var transitionDuration = 500;
+					var barChartWidth = $svgBarchart.clientWidth - margin.left - margin.right;
+					var barChartHeight = $svgBarchart.clientHeight - margin.top - margin.bottom;
+					var barWidth = Math.floor(barChartWidth / hypotheses.length) - 1;
+					var maxYValue  = Math.max.apply(null, hypotheses);
+					maxYValue = Math.max.apply(null, hypotheses);
+					xScale.range([0, barChartWidth]);
+					yScale.domain([0, maxYValue])
+						.range([barChartHeight, 0]);
+					bars
+						.data(hypotheses)
+						.transition()
+						.duration(transitionDuration)
+						.ease("linear")
+						.attr('x', function(value, index) { return xScale(index); })
+						.attr('width', barWidth)
+						.attr('y', function(value) { return yScale(value); } )
+						.attr('height', function(value) { return yScale(maxYValue - value); });
+					svgXAxis
+						.transition()
+						.duration(transitionDuration)
+						.attr('transform', 'translate(' + (margin.left)  + ','+(barChartHeight + margin.top)+')')
+						.call(xAxis);
+					svgYAxis
+						.transition()
+						.duration(transitionDuration)
+						.attr('transform', 'translate(' + (barChartWidth + margin.left)  + ','+ margin.top+')')
+						.call(yAxis);
+					
+					$stats.textContent = "Mode: "+mode(hypotheses)+"%, Mean: " + Math.round(mean(hypotheses)) + "%, Standard Deviation: " + Math.round(standardDeviation(hypotheses)) + "%";
+				}
+
+				var $btnSuccess = document.getElementById('btnSuccess');
+				var $btnFailure = document.getElementById('btnFailure');
+				var $btnReset = document.getElementById('btnReset');
+				$btnSuccess.onclick = function() {
+					hypotheses =  update_success(hypotheses);
+					updateUi();
+					window.location.hash += 'S';
+				}
+				$btnFailure.onclick = function() {
+					hypotheses =  update_failure(hypotheses);
+					updateUi();
+					window.location.hash += 'F';
+				}
+				$btnReset.onclick = function() {
+					hypotheses = uniform(101); 
+					updateUi();
+					window.location.hash = '';
+				}
+				window.onresize = updateUi;
+				window.onhashchange = updateUi;
+				updateUi();
+			})();
+		</script>
+	</body>
+</html>
