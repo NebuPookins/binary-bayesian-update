@@ -1068,7 +1068,7 @@
 				})();
 				
 
-				var margin = {top: 20, right: 60, bottom: 30, left: 20};
+				var margin = {top: 20, right: 80, bottom: 40, left: 20};
 				var $svgBarchart = document.getElementById('barchart');
 				var $stats = document.getElementById('stats');
 				var d3Svg = d3.select($svgBarchart);
@@ -1089,6 +1089,14 @@
 				var gBar = d3Svg
 					.append('g')
 					.attr('transform', 'translate(' + margin.left + ', ' + margin.top +')');
+
+				var xAxisLabel = gBar
+					.append('text')
+					.text('Hypothesis index');
+
+				var yAxisLabel = gBar
+					.append('text')
+					.text('Probability that hypothesis is true');
 
 				var bars = gBar
 					.selectAll('rect')
@@ -1117,6 +1125,13 @@
 					xScale.range([0, barChartWidth]);
 					yScale.domain([0, maxYValue])
 						.range([barChartHeight, 0]);
+					xAxisLabel
+						.attr('text-anchor', 'middle')
+						.attr('x', barChartWidth / 2)
+						.attr('y', barChartHeight + 35);
+					yAxisLabel
+						.attr('text-anchor', 'start')
+						.attr('transform', 'rotate(90), translate(0,-'+(barChartWidth + margin.right - 15)+')')
 					bars
 						.data(hypotheses)
 						.transition()
