@@ -336,7 +336,7 @@
 									.attr("x", function(d) { return d.children || d._children ? -30 : 30; })
 									.attr("dy", ".35em")
 									.attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
-									.attr('font-size', '100px')
+									.attr('font-size', '50px')
 									.text(function(d) { return d.name; })
 									.style("fill-opacity", 1);
 
@@ -553,6 +553,7 @@
 									.attr("x", function(d) { return d.children || d._children ? -30 : 30; })
 									.attr("dy", ".35em")
 									.attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+									.attr('font-size', '50px')
 									.text(function(d) { return d.name; })
 									.style("fill-opacity", function(d) { return d.deleted ? 0.4 : 1});
 
